@@ -1,150 +1,172 @@
-package asg1;
-import java.io.File;
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
+/**
+ * solveISet.java
+ * Java class that will find the maximum independent set of a graph from the given input file
+ */
 
-public class solveISet {
+package project1_IT328;
+
+import java.util.*;
+import java.io.*;
+
+
+public class solveISet 
+{
 
 	public static int[][] graph;
-	public static int dimension, numGraphs, numEdges, row;
+	public static int dimension, graphs, edges, row;
 	public static long ms;
-
-
-	public solveISet() {
-		graph = new int[60][60];
-		dimension = 0;
-		numGraphs = 0;
-		numEdges = 0;
-		row = 0;
-		ms = 0;
-	}
-
-
-	public ArrayList<Integer> findMaxIndependentSet(ArrayList<Integer> aClique, int row, int aDimension) {
-		long startTime = System.currentTimeMillis();
-
-		ArrayList<Integer> temp = new ArrayList<Integer>();
-		ArrayList<Integer> maxClique = new ArrayList<Integer>();
-		maxClique = aClique;
-
-		for (int i = row; i < dimension; i++) {
-			boolean isAClique = true;
-			for (int j = 0; j < aClique.size(); j++) {
-				if (graph[aClique.get(j)][i] != 1) {
-					isAClique = false;
-				}
-			}
-
-			if (isAClique) {
-				ArrayList<Integer> currentClique = new ArrayList<Integer>(aClique);
-				currentClique.add(i);
-				temp = findMaxIndependentSet(currentClique, i+1, dimension);
-
-				if (temp.size() > maxClique.size()) {
-					maxClique = temp;
-				}
-			}
-		} // end outer
-		long endTime = System.currentTimeMillis();
-		ms = endTime - startTime;
-		return maxClique;
-	}
-
 	
-	private static int countEdges() {
-		numEdges = 0;
-		for (int i = 0; i < dimension; i++) {
-			for (int j = i+1; j < dimension; j++) {
-				if (graph[i][j] == 1) {
-					numEdges++;
-				}
-			}
-		}
-		return numEdges / 2 + (dimension / 2);
-	}
-
-
-	private static int getNext(BufferedReader br) throws IOException {
-		char c = (char) br.read();
-		int x = Character.getNumericValue(c);
-		return x;
-	}
-
-
-	private static void printGraphSolution(ArrayList<Integer> aClique) {
-		int size = aClique.size();
-
-		System.out.println("G" + numGraphs + " (" + dimension + ", " + numEdges + ") " +
-			aClique.toString() + "(size=" + aClique.size() + ", " + ms + " ms)");
-	}
-
-
-	private static void printGraph() {
-		System.out.println("dimension = " + dimension);
-		for (int i = 0; i < dimension; i++) {
-			for (int j = 0; j < dimension; j++) {
-				System.out.print(graph[i][j] + " ");
-			}
-			System.out.println();
-		}
-		System.out.println();
-	}
-
-
-	public static void main(String[] args) {
+	// Driver Program 
+	public static void main(String[] args) 
+	{
 		solveISet indSet = new solveISet();
 
-		System.out.println("* Max Independent Set in graphs in graphs.txt\n");
+		System.out.println("* Max Independent Set in graphs in graphs2021.txt: (reduced to K-Clique) *");
 		System.out.println("(|V|,|E|) Independent Sets (size, ms used)");
 
 
 		BufferedReader br = null;
-		try {
+		try 
+		{
 			br = new BufferedReader(new FileReader("graphs2021.txt"));
 			String line = null;
-			while((line = br.readLine()) != null) {
+			
+			while((line = br.readLine()) != null) 
+			{
 				dimension = Integer.parseInt(line);
 
-				if (dimension != 0) {
-					numGraphs++;
+				if (dimension != 0) 
+				{
+					graphs++;
 
-
-					for(int i = 0; i < dimension; i++) {
-						for(int j = 0; j < dimension; j++) {
+					for(int i = 0; i < dimension; i++) 
+					{
+						for(int j = 0; j < dimension; j++) 
+						{
 							graph[i][j] = getNext(br);
 
 							countEdges(); 
-							if (i != j) {
-								if (graph[i][j] == 1) {
+							if (i != j) 
+							{
+								if (graph[i][j] == 1) 
+								{
 									graph[i][j] = 0;
-								} else {
+								} 
+								
+								else 
+								{
 									graph[i][j] = 1;
 								}
 							} 
 
 							br.read(); 
-						} 
+						}
+						
 						br.read();
 						br.read();
 					} 
 
 		
-					ArrayList<Integer> cliqueList = new ArrayList<Integer>();
-					cliqueList = indSet.findMaxIndependentSet(cliqueList, row, dimension);
-					printGraphSolution(cliqueList);
+					ArrayList<Integer> ISetList = new ArrayList<Integer>();
+					ISetList = indSet.maxISet(ISetList, row, dimension);
+					printGraph(ISetList);
 		
 				}
 			} 
+			
 			br.close();
 		}
-		catch (FileNotFoundException e) {
-			System.out.println("Could not find file.");
+		
+		catch (FileNotFoundException e) 
+		{
+			System.out.println("Unable to find input file: graphs2021.txt");
 		} 
-		catch (IOException e) {
-			System.out.println("Could not read file.");
+		catch (IOException e) 
+		{
+			System.out.println("Unable to read input file: graphs2021.txt");
 		}
+	}
+
+
+	// Default Constructor
+	public solveISet() 
+	{
+		graph = new int[60][60];			// 2D Array to store graph from input file
+		dimension = 0;						// Dimensions of the graph
+		graphs = 0;							// Number of graphs in the input file
+		edges = 0;							// Number of edges in the current graph
+		row = 0;							// Number of rows
+		ms = 0;								// Time used to calculate max clique within a given graph
+	}
+
+
+	public ArrayList<Integer> maxISet(ArrayList<Integer> aISet, int row, int aDimension) 
+	{
+		long startTime = System.currentTimeMillis();
+
+		ArrayList<Integer> temp = new ArrayList<Integer>();
+		ArrayList<Integer> maxISet = new ArrayList<Integer>();
+		maxISet = aISet;
+
+		for (int i = row; i < dimension; i++) 
+		{
+			boolean isAnISet = true;
+			
+			for (int j = 0; j < aISet.size(); j++) 
+			{
+				if (graph[aISet.get(j)][i] != 1) 
+				{
+					isAnISet = false;
+				}
+			}
+
+			if (isAnISet) 
+			{
+				ArrayList<Integer> currentISet = new ArrayList<Integer>(aISet);
+				currentISet.add(i);
+				temp = maxISet(currentISet, i+1, dimension);
+
+				if (temp.size() > maxISet.size()) {
+					maxISet = temp;
+				}
+			}
+		} 
+		
+		long endTime = System.currentTimeMillis();
+		ms = endTime - startTime;
+		return maxISet;
+	}
+
+	
+	private static int countEdges() 
+	{
+		edges = 0;
+		for (int i = 0; i < dimension; i++) 
+		{
+			for (int j = i+1; j < dimension; j++) 
+			{
+				if (graph[i][j] == 1) 
+				{
+					edges++;
+				}
+			}
+		}
+		
+		return edges / 2 + (dimension / 2);
+	}
+
+
+	private static int getNext(BufferedReader br) throws IOException 
+	{
+		char c = (char) br.read();
+		int n = Character.getNumericValue(c);
+		return n;
+	}
+
+
+	private static void printGraph(ArrayList<Integer> aISet) 
+	{
+		System.out.println("G" + graphs + " (" + dimension + ", " + edges + ") " +
+			aISet.toString() + "(size=" + aISet.size() + ", " + ms + " ms)");
 	} 
 }
